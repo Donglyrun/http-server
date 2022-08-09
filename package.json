@@ -1,0 +1,18 @@
+{
+  "name": "hs",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": "./bin/www",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^18.6.4",
+    "chalk": "4.1.2",
+    "commander": "^9.4.0",
+    "mime": "^3.0.0"
+  }
+}

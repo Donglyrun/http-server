@@ -1,0 +1,20 @@
+#! /usr/bin/env node
+
+const { program } = require("commander");
+const pkg = require("../package.json");
+const config = require("./config.js");
+
+program.name("hs").description("我的第一个插件").version(pkg.version);
+
+let defaultValue = {};
+
+Object.entries(config).forEach(([key, { option, description, defaultVal }]) => {
+  defaultValue[key] = defaultVal;
+  program.option(option, description);
+});
+
+const options = program.opts(process.argv);
+const userConfig = Object.assign(defaultValue, options);
+
+const createServer = require("../src/server.js");
+createServer(userConfig);
