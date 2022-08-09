@@ -6,6 +6,7 @@ const os = require("os");
 const chalk = require("chalk"); // 第三方 粉笔 展现不同的颜色
 const parse = require("url-parse");
 const mime = require("mime");
+const ejs = require("ejs");
 
 const { createReadStream } = require("fs");
 
@@ -25,13 +26,40 @@ class Server {
 
     try {
       let stateObj = await fs.stat(queryPath);
+
       if (stateObj.isFile()) {
         this.sendFile(queryPath, req, res);
       } else {
-        //1.
-        //2.
-        //3.
-        //4.
+        // 根据路径读取对应的目录
+        let dirs = await fs.readdir(queryPath);
+
+        let fileStatus = await Promise.all(
+          dirs.map(
+            async (dir) =>
+              await fs.stat(path.join(this.directory, pathname, dir))
+          )
+        );
+
+        dirs = dirs.map((dir, index) => {
+          return {
+            url: path.join(pathname, dir),
+            dir,
+            info: fileStatus[index].isFile() ? "文件" : "文件夹",
+            size: fileStatus[index].size || 0,
+          };
+        });
+
+        let html = await ejs.renderFile(
+          path.resolve(__dirname, "./template.html"),
+          { dirs }
+        );
+
+        res.setHeader(
+          "Content-Type",
+          mime.getType(queryPath) + ";charset=utf-8"
+        );
+
+        res.end(html);
       }
     } catch (err) {
       this.sendError(err, res);
@@ -42,13 +70,6 @@ class Server {
   }
 
   sendFile(queryPath, req, res) {
-    // hhtp 1.0 用的 expires
-    // res.setHeader("Expires", new Date(Date.now() + 10 * 1000).toGMTString());
-    // 设置强制缓存 不用每次都请求了 10s 内不要来访问css
-    res.setHeader("cache-control", "max-age=86400"); // 10s 内找浏览器的本地缓存
-
-    console.log(req.url);
-
     res.setHeader("Content-Type", mime.getType(queryPath) + ";charset=utf-8");
     createReadStream(queryPath).pipe(res);
   }
